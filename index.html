@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Disk Scheduling Simulator — FCFS, SSTF, SCAN, C-SCAN, LOOK, C-LOOK</title>
+  <meta name="description"
+    content="Interactive OS Disk Scheduling Simulator implementing FCFS, SSTF, SCAN, C-SCAN, LOOK and C-LOOK algorithms with step-by-step visualization and comparison." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js for head-movement line graph -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <div class="brand-icon">💿</div>
+        <div>
+          <h1>Disk Scheduling Simulator</h1>
+          <p class="brand-sub">OS Lab · FCFS &nbsp;·&nbsp; SSTF &nbsp;·&nbsp; SCAN &nbsp;·&nbsp; C-SCAN &nbsp;·&nbsp; LOOK &nbsp;·&nbsp; C-LOOK</p>
+        </div>
+      </div>
+      <div class="header-badge">Interactive Simulator</div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ========== INPUT CARD ========== -->
+    <section class="card input-card" id="input-section">
+      <div class="card-header">
+        <span class="card-icon">⚙️</span>
+        <h2>Input Configuration</h2>
+      </div>
+
+      <div class="input-grid">
+
+        <!-- Queue size -->
+        <div class="field-group">
+          <label for="queue-size">
+            Number of Disk Requests
+            <span class="field-hint">Queue Size</span>
+          </label>
+          <input type="number" id="queue-size" placeholder="e.g. 8" min="1" max="30"
+            oninput="syncQueueSize()" />
+        </div>
+
+        <!-- Head position -->
+        <div class="field-group">
+          <label for="head-position">
+            Initial Head Position
+            <span class="field-hint">Current Track</span>
+          </label>
+          <input type="number" id="head-position" placeholder="e.g. 53" min="0" />
+        </div>
+
+        <!-- Request sequence -->
+        <div class="field-group full-width">
+          <label for="request-sequence">
+            Request Queue
+            <span class="field-hint">Comma-separated track numbers</span>
+          </label>
+          <input type="text" id="request-sequence"
+            placeholder="e.g.  98, 183, 37, 122, 14, 124, 65, 67"
+            oninput="syncFromSequence()" />
+        </div>
+
+        <!-- Direction -->
+        <div class="field-group full-width">
+          <label>
+            Initial Head Direction
+            <span class="field-hint">Used by SCAN, C-SCAN, LOOK, C-LOOK</span>
+          </label>
+          <div class="radio-group">
+            <label class="radio-card" id="lbl-left">
+              <input type="radio" name="direction" value="left" id="dir-left" />
+              <span class="radio-icon">⬅️</span>
+              <span class="radio-text">
+                <strong>Towards 0</strong>
+                <small>Lower Tracks</small>
+              </span>
+            </label>
+            <label class="radio-card" id="lbl-right">
+              <input type="radio" name="direction" value="right" id="dir-right" checked />
+              <span class="radio-icon">➡️</span>
+              <span class="radio-text">
+                <strong>Towards Max</strong>
+                <small>Higher Tracks</small>
+              </span>
+            </label>
+          </div>
+        </div>
+
+      </div><!-- /.input-grid -->
+
+      <!-- Action buttons -->
+      <div class="action-row">
+        <div class="algo-btns">
+          <button class="btn btn-algo" id="btn-FCFS"  onclick="runAlgorithm('FCFS')">▶ FCFS</button>
+          <button class="btn btn-algo" id="btn-SSTF"  onclick="runAlgorithm('SSTF')">▶ SSTF</button>
+          <button class="btn btn-algo" id="btn-SCAN"  onclick="runAlgorithm('SCAN')">▶ SCAN</button>
+          <button class="btn btn-algo" id="btn-CSCAN" onclick="runAlgorithm('CSCAN')">▶ C-SCAN</button>
+          <button class="btn btn-algo" id="btn-LOOK"  onclick="runAlgorithm('LOOK')">▶ LOOK</button>
+          <button class="btn btn-algo" id="btn-CLOOK" onclick="runAlgorithm('CLOOK')">▶ C-LOOK</button>
+        </div>
+        <div class="main-btns">
+          <button class="btn btn-run-all" onclick="runAll()">🚀 Run All Algorithms</button>
+          <button class="btn btn-reset"   onclick="resetAll()">🔄 Reset</button>
+        </div>
+      </div>
+
+      <!-- Validation message -->
+      <div id="error-banner" class="error-banner" style="display:none;"></div>
+
+    </section><!-- /.input-card -->
+
+
+    <!-- ========== CANVAS VISUALIZATION ========== -->
+    <section class="card viz-card" id="viz-section" style="display:none;">
+      <div class="card-header">
+        <span class="card-icon">🖥️</span>
+        <h2>Track Visualization</h2>
+        <span class="viz-algo-badge" id="viz-algo-badge"></span>
+      </div>
+      <p class="viz-info" id="viz-info"></p>
+      <div class="canvas-wrap">
+        <canvas id="diskCanvas" width="960" height="190"></canvas>
+      </div>
+      <div class="canvas-legend">
+        <span class="dot green"></span> Forward Move &nbsp;
+        <span class="dot red"></span> Backward Move &nbsp;
+        <span class="dot blue"></span> Head Position &nbsp;
+        <span class="dot orange"></span> Requested Track &nbsp;
+        <span class="dot gray"></span> Disk Boundary (SCAN/C-SCAN)
+      </div>
+    </section>
+
+
+    <!-- ========== RESULT CARDS ========== -->
+    <section class="results-grid" id="results-section"></section>
+
+
+    <!-- ========== CHART.JS HEAD-MOVEMENT GRAPH ========== -->
+    <section class="card graph-card" id="graph-section" style="display:none;">
+      <div class="card-header graph-card-header">
+        <div>
+          <span class="card-icon">📈</span>
+          <h2>Head Movement Graph</h2>
+        </div>
+        <!-- Algo switcher (visible after Run All) -->
+        <div class="graph-switcher" id="graph-switcher" style="display:none;">
+          <span class="switcher-label">Switch:</span>
+          <button class="pill" id="sw-FCFS"  onclick="switchGraph('FCFS')">FCFS</button>
+          <button class="pill" id="sw-SSTF"  onclick="switchGraph('SSTF')">SSTF</button>
+          <button class="pill" id="sw-SCAN"  onclick="switchGraph('SCAN')">SCAN</button>
+          <button class="pill" id="sw-CSCAN" onclick="switchGraph('CSCAN')">C-SCAN</button>
+          <button class="pill" id="sw-LOOK"  onclick="switchGraph('LOOK')">LOOK</button>
+          <button class="pill" id="sw-CLOOK" onclick="switchGraph('CLOOK')">C-LOOK</button>
+        </div>
+      </div>
+      <p class="graph-subtitle" id="graph-subtitle">Run an algorithm to see the head movement graph.</p>
+      <div class="chart-wrap">
+        <canvas id="headMovementChart"></canvas>
+      </div>
+      <div class="graph-legend">
+        <span class="dot" style="background:#6c63ff;"></span> Head Track Position &nbsp;
+        <span class="dot" style="background:#f59e0b;"></span> Start Position &nbsp;
+        <span class="dot" style="background:#00d4aa;"></span> Serviced Track
+      </div>
+    </section>
+
+
+    <!-- ========== COMPARISON TABLE ========== -->
+    <section class="card cmp-card" id="cmp-section" style="display:none;">
+      <div class="card-header">
+        <span class="card-icon">📋</span>
+        <h2>Algorithm Comparison</h2>
+      </div>
+      <div class="table-scroll">
+        <table id="cmp-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Algorithm</th>
+              <th>Total Seek Time</th>
+              <th>Steps</th>
+              <th>Service Sequence (preview)</th>
+              <th>Performance</th>
+            </tr>
+          </thead>
+          <tbody id="cmp-body"></tbody>
+        </table>
+      </div>
+      <div class="best-banner" id="best-banner"></div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <p>🖥️ OS Lab &mdash; Disk Scheduling Simulator &nbsp;|&nbsp; FCFS · SSTF · SCAN · C-SCAN · LOOK · C-LOOK &nbsp;|&nbsp; Built with HTML · CSS · JS</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
