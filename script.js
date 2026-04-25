@@ -493,7 +493,7 @@ function drawCanvas(data) {
   const tx = t => PAD_L + (t / maxT) * trkW;
 
   // -- Grid lines --
-  ctx.strokeStyle = '#1a2040';
+  ctx.strokeStyle = '#d4d8ec';
   ctx.lineWidth   = 1;
   const step = maxT <= 200 ? 20 : maxT <= 500 ? 50 : 100;
   for (let t = 0; t <= maxT; t += step) {
@@ -502,14 +502,14 @@ function drawCanvas(data) {
     ctx.moveTo(x, lineY - 80);
     ctx.lineTo(x, lineY + 18);
     ctx.stroke();
-    ctx.fillStyle = '#374151';
+    ctx.fillStyle = '#7c849e';
     ctx.font = '9px JetBrains Mono, monospace';
     ctx.textAlign = 'center';
     ctx.fillText(t, x, lineY + 30);
   }
 
   // -- Track baseline --
-  ctx.strokeStyle = '#2e3760';
+  ctx.strokeStyle = '#bec4df';
   ctx.lineWidth   = 2.5;
   ctx.beginPath();
   ctx.moveTo(PAD_L, lineY);
@@ -517,7 +517,7 @@ function drawCanvas(data) {
   ctx.stroke();
 
   // End labels
-  ctx.fillStyle = '#4b5563';
+  ctx.fillStyle = '#7c849e';
   ctx.font      = '10px Inter, sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText('0', PAD_L, lineY + 42);
@@ -617,9 +617,9 @@ function drawHeadGraph(seq, label, key) {
 
   const chartCtx = document.getElementById('headMovementChart').getContext('2d');
   const grad     = chartCtx.createLinearGradient(0, 0, 0, 320);
-  grad.addColorStop(0,   'rgba(108,99,255,0.4)');
-  grad.addColorStop(0.6, 'rgba(0,212,170,0.1)');
-  grad.addColorStop(1,   'rgba(0,212,170,0)');
+  grad.addColorStop(0,   'rgba(91,82,232,0.22)');
+  grad.addColorStop(0.6, 'rgba(8,145,178,0.07)');
+  grad.addColorStop(1,   'rgba(8,145,178,0)');
 
   headChart = new Chart(chartCtx, {
     type: 'line',
@@ -629,10 +629,10 @@ function drawHeadGraph(seq, label, key) {
         label: 'Track Position',
         data:  seq,
         backgroundColor: grad,
-        borderColor:    '#6c63ff',
+        borderColor:    '#5b52e8',
         borderWidth:    2.5,
-        pointBackgroundColor: seq.map((_, i) => i === 0 ? '#f59e0b' : '#00d4aa'),
-        pointBorderColor:     '#111527',
+        pointBackgroundColor: seq.map((_, i) => i === 0 ? '#d97706' : '#0891b2'),
+        pointBorderColor:     '#ffffff',
         pointBorderWidth: 2,
         pointRadius:      6,
         pointHoverRadius: 9,
@@ -647,11 +647,11 @@ function drawHeadGraph(seq, label, key) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: '#111527',
-          borderColor:     '#252c4a',
+          backgroundColor: '#ffffff',
+          borderColor:     '#d4d8ec',
           borderWidth:     1,
-          titleColor:      '#a5b4fc',
-          bodyColor:       '#e2e8f0',
+          titleColor:      '#5b52e8',
+          bodyColor:       '#1e2340',
           padding:         12,
           callbacks: {
             title: items => items[0].label,
@@ -661,14 +661,14 @@ function drawHeadGraph(seq, label, key) {
       },
       scales: {
         x: {
-          title: { display: true, text: 'Step', color: '#94a3b8', font: { size: 11 } },
-          grid:  { color: '#1a2040' },
-          ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono' } }
+          title: { display: true, text: 'Step', color: '#4a5270', font: { size: 11 } },
+          grid:  { color: '#e8eaf2' },
+          ticks: { color: '#4a5270', font: { family: 'JetBrains Mono' } }
         },
         y: {
-          title: { display: true, text: 'Track Number', color: '#94a3b8', font: { size: 11 } },
-          grid:  { color: '#1a2040' },
-          ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono' } },
+          title: { display: true, text: 'Track Number', color: '#4a5270', font: { size: 11 } },
+          grid:  { color: '#e8eaf2' },
+          ticks: { color: '#4a5270', font: { family: 'JetBrains Mono' } },
           beginAtZero: false
         }
       }
